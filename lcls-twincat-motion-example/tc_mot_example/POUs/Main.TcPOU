@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
   <POU Name="Main" Id="{7b41e58a-08f0-4959-90b4-af08ef5cbf10}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM Main
 VAR
@@ -26,6 +26,19 @@ VAR
     '}
     M3: DUT_MotionStage;
     fbMotion3: FB_MotionStage;
+	
+	// Motor on motion-tst-plc
+	{attribute 'pytmc' := '
+        pv: PLC:TST:MOT:SIM:04
+        field: DESC Motor Working with Hardware Limits
+    '}
+	{attribute 'TcLinkTo' := '.nRawEncoderULINT     := TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 4 (EL5042)^FB Inputs Channel 1^Position'}
+	M4: DUT_MotionStage;
+	fbMotion4: FB_MotionStage;
+	{attribute 'TcLinkTo' := 'TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 3 (EL1084)^Channel 1^Input'}
+	bFwdEnable 		AT %I* 	: BOOL;
+	{attribute 'TcLinkTo' := 'TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 3 (EL1084)^Channel 2^Input'}
+	bBackwdEnable 	AT %I* 	: BOOL;
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[fbMotion1(stMotionStage := M1);
@@ -34,7 +47,15 @@ fbMotion3(stMotionStage := M3);
 M3.bHardwareEnable := TRUE;
 M3.bPowerSelf := TRUE;
 M3.bLimitForwardEnable := M3.Axis.NcToPlc.ActPos < 99.7;
-M3.bLimitBackwardEnable := M3.Axis.NcToPlc.ActPos > 0.2;]]></ST>
+M3.bLimitBackwardEnable := M3.Axis.NcToPlc.ActPos > 0.2;
+
+
+fbMotion4(stMotionStage := M4);
+M4.bHardwareEnable := TRUE;
+M4.bPowerSelf := TRUE;
+M4.bLimitForwardEnable := NOT bFwdEnable;
+M4.bLimitBackwardEnable := NOT bBackwdEnable;
+]]></ST>
     </Implementation>
   </POU>
 </TcPlcObject>
